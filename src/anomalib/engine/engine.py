@@ -295,7 +295,7 @@ class Engine:
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - #
         # 2. Update the default root directory
         root_dir = Path(self._cache.args["default_root_dir"]) / model.name / dataset_name / category
-        self._cache.args["default_root_dir"] = create_versioned_dir(root_dir) if versioned_dir else root_dir / "latest"
+        # self._cache.args["default_root_dir"] = create_versioned_dir(root_dir) if versioned_dir else root_dir / "latest"
 
     def _setup_trainer(self, model: AnomalibModule) -> None:
         """Instantiate the trainer based on the model parameters."""
@@ -308,22 +308,22 @@ class Engine:
 
         # Instantiate the trainer if it is not already instantiated
         if self._trainer is None:
-            self._trainer = Trainer(**self._cache.args)
+            self._trainer = Trainer(**self._cache.args, enable_checkpointing=False)
 
     def _setup_anomalib_callbacks(self) -> None:
         """Set up callbacks for the trainer."""
         callbacks: list[Callback] = []
 
         # Add ModelCheckpoint if it is not in the callbacks list.
-        has_checkpoint_callback = any(isinstance(c, ModelCheckpoint) for c in self._cache.args["callbacks"])
-        if has_checkpoint_callback is False:
-            callbacks.append(
-                ModelCheckpoint(
-                    dirpath=self._cache.args["default_root_dir"] / "weights" / "lightning",
-                    filename="model",
-                    auto_insert_metric_name=False,
-                ),
-            )
+        # has_checkpoint_callback = any(isinstance(c, ModelCheckpoint) for c in self._cache.args["callbacks"])
+        # if has_checkpoint_callback is False:
+            # callbacks.append(
+                # ModelCheckpoint(
+                    # dirpath=self._cache.args["default_root_dir"] / "weights" / "lightning",
+                    # filename="model",
+                    # auto_insert_metric_name=False,
+                # ),
+            # )
 
         callbacks.append(TimerCallback())
 
