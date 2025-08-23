@@ -126,6 +126,7 @@ class PatchcoreModel(DynamicBufferMixin, nn.Module):
         self.anomaly_map_generator = AnomalyMapGenerator()
         self.memory_bank: torch.Tensor
         self.register_buffer("memory_bank", torch.empty(0))
+        self.embeddings_list: list[torch.tensor] = []
 
     def forward(self, input_tensor: torch.Tensor) -> torch.Tensor | InferenceBatch:
         """Process input tensor through the model.
@@ -169,11 +170,7 @@ class PatchcoreModel(DynamicBufferMixin, nn.Module):
         embedding = self.reshape_embedding(embedding)
 
         if self.training:
-            if self.memory_bank.size(0) == 0:
-                self.memory_bank = embedding
-            else:
-                new_bank = torch.cat((self.memory_bank, embedding), dim=0).to(self.memory_bank)
-                self.memory_bank = new_bank
+            self.embeddings_list.append(embedding)
             return embedding
 
         # Ensure memory bank is not empty
@@ -271,6 +268,9 @@ class PatchcoreModel(DynamicBufferMixin, nn.Module):
         """
         if embeddings is not None:
             del embeddings
+
+        self.memory_bank = torch.vstack(self.embeddings_list)
+        self.embeddings_list.clear()
 
         if self.memory_bank.size(0) == 0:
             msg = "Memory bank is empty. Cannot perform coreset selection."
